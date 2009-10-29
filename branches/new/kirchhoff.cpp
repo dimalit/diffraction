@@ -8,6 +8,7 @@
 #include <cmath>
 
 using std::sqrt;
+using std::abs;
 
 #include "kirchhoff.h"
 
@@ -41,11 +42,11 @@ void Kirchhoff2d::create(){
 		//              /\
 		// we need:    /  \
 		//
-		double dy = (height - abs(y+y_start-height)) / resolution;
+		double dy = (height - abs((double)y+y_start-height)) / resolution;
 
 		for (int x = 0; x < 2*width; x++)
 		{
-		double dx = (width - abs(x-width)) / resolution;
+		double dx = (width - abs((double)x-width)) / resolution;
 
 			double r = sqrt( dx*dx + dy*dy + dis2);
 			if( r == 0.0 ) continue;

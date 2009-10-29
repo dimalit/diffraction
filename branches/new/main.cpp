@@ -6,6 +6,11 @@
  */
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <iostream>
+
+using namespace std;
+
 #include "kirchhoff.h"
 
 int comm_rank;
