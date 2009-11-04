@@ -8,11 +8,24 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <iostream>
+#include <iomanip.h>
 
 using namespace std;
 
 #include "kirchhoff.h"
+/*
+int MPI_Alloc_mem(MPI_Aint size, MPI_Info info, void *baseptr){
+	cout << "MPI_Alloc_mem(" << size <<", " << info << ", " << baseptr << ");\n";
+	return PMPI_Alloc_mem(size, info, baseptr);
+}
 
+int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
+                                 MPI_Datatype sendtype, void *recvbuf, int *recvcounts,
+                                 int *rdispls, MPI_Datatype recvtype, MPI_Comm comm){
+	cout << "MPI_Alltoallv()\n";
+	return PMPI_Alltoallv(sendbuf, sendcounts, sdispls, sendtype, recvbuf, recvcounts, rdispls, recvtype, comm);
+}
+*/
 int comm_rank;
 int comm_size;
 
@@ -207,6 +220,66 @@ int file_main(int argc, char** argv){
 	return 0;
 }
 
+#include "my_fft.h"
+
+void do_fft_mkl(complex<double>* arg, int dim){
+
+	DFTI_DESCRIPTOR_HANDLE desc;
+	DftiCreateDescriptor(&desc, DFTI_DOUBLE, DFTI_COMPLEX, 1, dim);
+
+	DftiSetValue(desc,DFTI_PLACEMENT,DFTI_INPLACE);
+	DftiCommitDescriptor(desc);
+
+	DftiComputeForward(desc, (double*)arg);
+
+	DftiFreeDescriptor(&desc);
+}
+
+int test_my_fft(int argc, char** argv){
+	if(argc < 2){
+		puts("USAGE: diffraction_new fft_dim [intel]");
+		return -1;
+	}
+
+	int dim = atoi(argv[1]);
+	dim *= dim;
+
+	bool intel = false;
+	if(argc > 2)
+		intel = true;
+
+	// fill
+	complex<double>* arr = new complex<double>[dim];
+	for(int i=0; i<dim; i++){
+		arr[i].re = i;
+		arr[i].im = 0;
+	}
+
+	double tm = dtime();
+
+	if(intel)
+		do_fft_mkl(arr, dim);
+	else{
+		//exec
+		my_fft<double> fft(dim);
+		fft.exec_inplace(arr);
+	}
+
+	tm = dtime() - tm;
+
+	// print
+	if(dim <= 256){
+		for(int i=0; i<dim; i++){
+			cout << std::fixed << std::setprecision(2) << arr[i].re << " " << arr[i].im << endl;
+		}
+	}
+
+	cout << tm << " s\n";
+	cout << 5*dim*log2(dim) / tm / 1000000 << " MFlops\n";
+
+	return 0;
+}
+
 int main(int argc, char** argv){
 
 	MPI_Init(&argc, &argv);
@@ -219,7 +292,8 @@ int main(int argc, char** argv){
 	}
 
 //	int ret = file_main(argc, argv);
-	int ret = test_kirchhoff(argc, argv);
+//	int ret = test_kirchhoff(argc, argv);
+	int ret = test_my_fft(argc, argv);
 
 	if(ret < 0)
 		MPI_Abort(MPI_COMM_WORLD, ret);
