@@ -3,7 +3,7 @@
 = Introduction =
 
 Add your content here.
-[c:/windows/notepad.exe notepad]
+[file:///c:/windows/notepad.exe notepad]
 
 = Details =
 
