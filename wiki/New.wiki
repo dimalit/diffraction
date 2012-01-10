@@ -4,7 +4,7 @@
 
 Add your content here.
 [file:///c:/windows/notepad.exe notepad]
-
+<video>http://diffraction.googlecode.com/files/I-15bis.ogg</video>
 = Details =
 
 Add your content here.  Format your content with:
